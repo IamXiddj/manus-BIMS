@@ -257,25 +257,20 @@ CREATE TABLE IF NOT EXISTS password_history (
 ALTER TABLE announcements ADD COLUMN IF NOT EXISTS is_draft TINYINT(1) NOT NULL DEFAULT 0;
 ALTER TABLE announcements ADD COLUMN IF NOT EXISTS archived_at DATETIME NULL;
 
--- Resident self-registration applications awaiting staff approval.
-CREATE TABLE IF NOT EXISTS resident_applications (
-  id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+
+-- Elected officials shown in the official sidebar and managed by authorized staff.
+CREATE TABLE IF NOT EXISTS elected_officials (
+  id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  position_title VARCHAR(100) NOT NULL,
   full_name VARCHAR(120) NOT NULL,
-  email VARCHAR(190) NOT NULL,
-  username VARCHAR(100) NOT NULL,
-  password_hash VARCHAR(255) NOT NULL,
   address VARCHAR(180) NOT NULL,
-  age TINYINT UNSIGNED NOT NULL,
-  sector VARCHAR(60) NOT NULL,
-  household VARCHAR(120) NOT NULL,
-  civil_status VARCHAR(30) NOT NULL DEFAULT 'Single',
-  contact_number VARCHAR(30) DEFAULT NULL,
-  status ENUM('Pending','Approved','Rejected') NOT NULL DEFAULT 'Pending',
-  rejection_reason TEXT NULL,
-  reviewed_by INT UNSIGNED NULL,
-  reviewed_at DATETIME NULL,
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  CONSTRAINT fk_application_reviewer FOREIGN KEY (reviewed_by) REFERENCES users(id) ON DELETE SET NULL,
-  UNIQUE KEY uq_application_username (username),
-  INDEX idx_application_status (status,created_at)
+  term_end DATE NOT NULL,
+  contact_number VARCHAR(30) NOT NULL,
+  sort_order SMALLINT UNSIGNED NOT NULL DEFAULT 0,
+  is_active TINYINT(1) NOT NULL DEFAULT 1,
+  created_by INT UNSIGNED NULL,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  CONSTRAINT fk_official_creator FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE SET NULL,
+  INDEX idx_official_active (is_active,sort_order)
 );
+ALTER TABLE users MODIFY account_status ENUM('active','suspended','expired','archived') NOT NULL DEFAULT 'active';
