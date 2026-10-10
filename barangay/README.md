@@ -90,3 +90,24 @@ The reports page supports free-text search and inclusive from/to dates. The sele
 ## Document fee management
 
 Authorized records officers and treasurers can open `fees.php` from the staff sidebar to update the manual fee schedule. New resident and staff-created document requests read the current schedule from `document_fee_settings`; existing requests preserve their historical fee. The reports dashboard now shows live incident and document analytics, and its PDF, CSV, and Word exports preserve the search and date-range filters.
+
+## Production-readiness continuation
+
+The latest migration adds protected evidence access, official identity/template settings, announcement lifecycle fields, and password recovery history. After importing into an existing database, run the additive statements at the end of `database.sql` or import the complete updated file into a staging copy first. The application does not delete resident or staff records as part of migration.
+
+Open **Barangay settings** as an administrator, records officer, or staff user to enter the actual barangay name, municipality, province, seal URL, address, contacts, Punong Barangay, records signatory, official wording, and payment instructions. Official printouts read these values at render time. Replace the default placeholders before official use.
+
+Evidence uploads remain stored outside the public listing flow with randomized server-side names. Staff and the submitting resident can open an evidence detail page that shows the original filename, upload timestamp, MIME type, file size, and record relationship. Download and view actions are authorization-checked and audit-logged. Apache upload rules deny PHP-family execution in the attachment directory. Production deployments should additionally keep the storage directory outside the web root or behind a private object-storage policy and add malware scanning.
+
+Announcements now support edit, draft, publish, unpublish, archive, confirmation prompts, and audit events. Residents see only published, non-draft, non-archived updates. Password recovery sends a short-lived email reset link, while authenticated users can change their password. Five recent password hashes are retained to prevent immediate reuse; mail credentials must be supplied through Apache/PHP environment variables.
+
+### Backup and restore runbook
+
+1. Download an encrypted backup from **Backups** only after setting `BACKUP_ENCRYPTION_KEY` outside the web root. Keep the key separate from the `.sql.enc` file.
+2. Decrypt the file in an isolated working directory using the same AES-256-CBC key and confirm the payload begins with the SQL header. Never decrypt over the live database directory.
+3. Create a separate empty MySQL/MariaDB database, import the decrypted SQL file, and verify table counts, a sample resident, a document request, a blotter case, audit logs, and the newest backup log.
+4. Point a staging copy of `config/database.php` or its environment-backed equivalent at the isolated database and exercise login, OTP, reports, document printing, and resident portal reads.
+5. Switch the application database configuration only after verification and a maintenance window. Keep the previous configuration available for rollback.
+6. If import fails, discard only the isolated database, inspect the SQL error and storage capacity, restore from the previous known-good backup, and repeat into a new isolated database. There is intentionally no destructive one-click restore.
+
+Before production release, test reports with empty, single, multiple, date-filtered, special-character, large, PDF-overflow, CSV/Excel, and Word-compatible data. Enable HTTPS, secure session cookies, environment secrets, private attachment storage, malware scanning, and a scheduled backup/restore drill.

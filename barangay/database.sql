@@ -224,3 +224,35 @@ INSERT INTO document_fee_settings (document_type, fee) VALUES
 ('Business clearance',100.00),
 ('Special certification',30.00)
 ON DUPLICATE KEY UPDATE document_type=VALUES(document_type);
+
+-- Production-readiness additions. Safe for fresh imports and existing databases.
+CREATE TABLE IF NOT EXISTS system_settings (
+  `key` VARCHAR(80) PRIMARY KEY,
+  `value` TEXT NOT NULL,
+  updated_by INT UNSIGNED NULL,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  CONSTRAINT fk_system_setting_user FOREIGN KEY (updated_by) REFERENCES users(id) ON DELETE SET NULL
+);
+INSERT INTO system_settings (`key`,`value`) VALUES
+('barangay_name','Barangay San Isidro'),('municipality','Municipality of ____________________'),('province','Province of ____________________'),('official_address','Barangay Hall, San Isidro'),('contact_details',''),('logo_url',''),('punong_barangay','Hon. ____________________'),('records_signatory',''),('official_wording','This certification is issued based on the official records maintained by the barangay.'),('payment_instructions','Present this request to the barangay treasurer for official payment and receipt processing.')
+ON DUPLICATE KEY UPDATE `key`=`key`;
+CREATE TABLE IF NOT EXISTS password_resets (
+  id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  user_id INT UNSIGNED NOT NULL,
+  token_hash CHAR(64) NOT NULL UNIQUE,
+  expires_at DATETIME NOT NULL,
+  used_at DATETIME NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT fk_password_reset_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+  INDEX idx_password_reset_user (user_id,used_at)
+);
+CREATE TABLE IF NOT EXISTS password_history (
+  id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  user_id INT UNSIGNED NOT NULL,
+  password_hash VARCHAR(255) NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT fk_password_history_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+  INDEX idx_password_history_user (user_id,created_at)
+);
+ALTER TABLE announcements ADD COLUMN IF NOT EXISTS is_draft TINYINT(1) NOT NULL DEFAULT 0;
+ALTER TABLE announcements ADD COLUMN IF NOT EXISTS archived_at DATETIME NULL;
