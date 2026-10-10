@@ -111,3 +111,8 @@ Announcements now support edit, draft, publish, unpublish, archive, confirmation
 6. If import fails, discard only the isolated database, inspect the SQL error and storage capacity, restore from the previous known-good backup, and repeat into a new isolated database. There is intentionally no destructive one-click restore.
 
 Before production release, test reports with empty, single, multiple, date-filtered, special-character, large, PDF-overflow, CSV/Excel, and Word-compatible data. Enable HTTPS, secure session cookies, environment secrets, private attachment storage, malware scanning, and a scheduled backup/restore drill.
+
+
+## Resident onboarding
+
+Residents can now apply for portal access from `register.php`. Staff review the queue in **Resident applications**, approve eligible requests into a resident record and OTP-enabled portal account, or reject them with a recorded reason. Approval defaults portal access to one year and keeps the application history for audit.
